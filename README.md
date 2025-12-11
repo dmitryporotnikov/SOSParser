@@ -5,53 +5,10 @@ A web application for automated analysis of Linux sosreport/supportconfig diagno
 [![Docker Hub](https://img.shields.io/docker/pulls/samuelmatildes/sosparser)](https://hub.docker.com/r/samuelmatildes/sosparser)
 [![Docker Image Size](https://img.shields.io/docker/image-size/samuelmatildes/sosparser/latest)](https://hub.docker.com/r/samuelmatildes/sosparser)
 
-## Project Structure
 
-```
-sosparser/
-├── webapp/          # Flask web application
-│   ├── app.py      # Main Flask app
-│   ├── templates/  # HTML templates
-│   └── static/     # CSS, JS, images
-├── src/             # Core analyzer logic
-│   ├── core/       # Main analyzer orchestration
-│   ├── analyzers/  # Domain-specific analyzers
-│   │   ├── system/ # System information
-│   │   ├── network/# Network analysis
-│   │   ├── logs/   # Log analysis
-│   │   └── scenarios/ # Pattern-based scenario detection
-│   ├── reporting/  # Report generation
-│   ├── templates/  # Report HTML template
-│   ├── scenarios/  # Scenario JSON configs
-│   ├── static/     # Report assets
-│   └── utils/      # Utility functions
-└── README.md
-```
+## How to run
 
-## Architecture
-
-The application follows a domain-based architecture with clear separation:
-
-1. **Webapp Layer** (`webapp/`): Flask application handling file uploads and serving results
-2. **Analyzer Layer** (`src/`): Core analysis logic, completely independent of webapp
-3. **Report Generation**: Template-based HTML report generation with Jinja2
-
-## Features
-
-- **File Upload**: Accepts sosreport tarballs (.tar.xz, .tar.gz, .tar.bz2, .tar)
-- **Automated Analysis**: 
-  - System information extraction (CPU, memory, disks, DMI)
-  - System configuration (packages, kernel modules, users)
-  - Filesystem analysis
-  - Network configuration analysis
-  - Cloud provider detection (AWS, Azure, GCP, Oracle Cloud)
-  - Advanced log viewer with search and filtering
-- **Interactive Reports**: Ultra-dark themed HTML reports with tabbed navigation
-- **Privacy-Focused**: Auto-cleanup of uploaded files and reports after viewing
-
-## Installation
-
-### 🐳 Docker (Recommended)
+### Docker (Recommended)
 
 The easiest way to run SOSParser is using Docker:
 
@@ -62,45 +19,7 @@ docker run -d -p 8000:8000 --name sosparser samuelmatildes/sosparser:latest
 
 Then open http://localhost:8000 in your browser.
 
-#### With Persistent Storage (Optional)
 
-```bash
-mkdir -p data/uploads data/outputs
-docker run -d \
-  -p 8000:8000 \
-  -v $(pwd)/data/uploads:/app/webapp/uploads \
-  -v $(pwd)/data/outputs:/app/webapp/outputs \
-  --name sosparser \
-  samuelmatildes/sosparser:latest
-```
-
-#### Using Docker Compose
-
-```bash
-# Download docker-compose.yml from the repository
-docker-compose up -d
-```
-
-### 🐍 Python (Development)
-
-#### Prerequisites
-
-- Python 3.10+
-- pip
-
-#### Setup
-
-1. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-2. Run the webapp:
-```bash
-python3 webapp/app.py
-```
-
-The webapp will be available at `http://localhost:8000`
 
 ## Usage
 
@@ -109,101 +28,8 @@ The webapp will be available at `http://localhost:8000`
 1. Open `http://localhost:8000` in your browser
 2. Select a sosreport tarball file (supports .tar.xz, .tar.gz, .tar.bz2, .tar)
 3. Click "Analyze Report"
-4. View the generated interactive analysis report with:
-   - **Summary**: System overview, hardware specs, memory, report metadata
-   - **System Config**: OS details, packages, kernel modules, users & groups
-   - **Filesystem**: Mount points, disk usage, LVM configuration
-   - **Network**: Interfaces, routing, DNS, firewall rules
-   - **Cloud**: Cloud provider detection and configuration (if applicable)
-   - **Logs**: Advanced log viewer with search, filters, and highlighting
+4. View the generated interactive analysis report.
 
-### Docker Management
-
-```bash
-# View logs
-docker logs -f sosparser
-
-# Stop the container
-docker stop sosparser
-
-# Start the container
-docker start sosparser
-
-# Remove the container
-docker rm -f sosparser
-
-# Update to latest version
-docker pull samuelmatildes/sosparser:latest
-docker rm -f sosparser
-docker run -d -p 8000:8000 --name sosparser samuelmatildes/sosparser:latest
-```
-
-### Command Line (Direct Analysis)
-
-```python
-from src.core.analyzer import run_analysis
-
-report_path = run_analysis(
-    "/path/to/sosreport.tar.xz",
-    debug_mode=True
-)
-print(f"Report generated: {report_path}")
-```
-
-## Adding Scenarios
-
-Scenarios are JSON-based pattern matching configurations stored in `src/scenarios/`.
-
-Example scenario structure:
-```json
-{
-  "ScenarioName": "My Scenario",
-  "Description": "Detect specific issues",
-  "ScenarioConfigs": [
-    {
-      "AlertName": "Issue Name",
-      "Level": "Warning",
-      "FailureSignature": "signature_name",
-      "Workflow": "https://docs.example.com/troubleshooting",
-      "MessageTemplate": "Description of the issue",
-      "Recommendations": [
-        "Fix step 1",
-        "Fix step 2"
-      ],
-      "FileConfigs": [
-        {
-          "FilePath": "var/log",
-          "FileName": "messages",
-          "LookFor": [
-            {
-              "Pattern": "error_pattern",
-              "Type": "regex",
-              "Severity": "Warning",
-              "MaxMatches": 20
-            }
-          ]
-        }
-      ]
-    }
-  ]
-}
-```
-
-## Development
-
-### Project Principles
-
-1. **Domain Separation**: Webapp and analyzer are completely separate
-2. **Template-Based**: Reports use Jinja2 templates for easy customization
-3. **Scenario-Driven**: Issue detection through JSON configurations
-4. **No External Dependencies**: Minimal dependencies, uses Python stdlib where possible
-
-### Code Structure
-
-- Analyzers are modular and independent
-- Each analyzer returns structured data
-- Report generator combines all data into HTML
-- Scenarios can be added/modified without code changes
 
 ## Supported Formats
 
@@ -213,15 +39,6 @@ Example scenario structure:
 - `.tgz`
 - `.tar`
 
-## Theme
-
-The application uses a custom ultra-dark condensed theme:
-- **Webapp**: Cyan/Orange accents on ultra-dark background
-- **Report**: Purple/Cyan accents on ultra-dark background with condensed spacing
-
-Both themes are modern, space-efficient, and maintain excellent readability.
-
-## Build from Source
 
 ### Build Docker Image Locally
 
@@ -247,10 +64,55 @@ Available tags:
 - `v*.*.*` - Specific version releases
 - Multi-platform support: `linux/amd64`, `linux/arm64`
 
-## Support
+## Contributing
 
-For issues, questions, or contributions, please visit the GitHub repository.
+We welcome contributions to `sosparser`! To help us maintain a high-quality codebase, please review and follow these guidelines:
 
-## License
+### How to Contribute
 
-[Add your license here]
+1. **Fork the repository**  
+   Click "Fork" at the top right of this page and clone your fork locally.
+
+2. **Create a new branch**  
+   Branch names should be descriptive, e.g. `feature/add-parsing-support` or `fix/crash-on-upload`.
+
+3. **Make your changes**  
+   Please keep your changes focused and avoid unrelated formatting edits.
+
+4. **Write clear commit messages**  
+   Describe what your change does and why it’s needed.
+
+5. **Test your changes**  
+   Ensure that existing tests pass and write new tests for your features or bugfixes if possible.
+
+6. **Submit a Pull Request**  
+   Push your branch and open a Pull Request (PR) to the `main` branch. Include:
+   - A summary of your changes
+   - Any relevant issue numbers (e.g. `Closes #12`)
+   - Screenshots or logs if relevant
+
+7. **Code Review**  
+   Be responsive to feedback and please update your PR as requested.
+
+
+---
+
+## Reporting Issues
+
+If you encounter bugs, have questions, or want to suggest an enhancement:
+
+1. **Search first**  
+   Check [existing issues](https://github.com/samatild/sosparser/issues) to avoid duplicates.
+
+2. **Open a new issue**  
+   Use the [Issue Tracker](https://github.com/samatild/sosparser/issues/new/choose). Include:
+   - A clear and descriptive title
+   - Steps to reproduce the problem (if applicable)
+   - Expected and actual behavior
+   - Environment details (OS, browser, Docker tag, etc.)
+   - Screenshots or logs if helpful
+
+3. **Feature Requests**  
+   Clearly describe the use case and the benefit for others.
+
+Thank you for helping improve `sosparser`!
