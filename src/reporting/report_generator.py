@@ -3,6 +3,7 @@
 
 from typing import Dict, List, Any
 from analyzers.scenarios.scenario_analyzer import ScenarioResult
+from __version__ import __version__
 
 
 def get_os_logo(os_info: Dict[str, str]) -> str:
@@ -72,6 +73,7 @@ def prepare_report_data(
     os_logo = get_os_logo(os_info)
     
     return {
+        'version': __version__,
         'diagnostic_timestamp': diagnostic_timestamp or 'Unknown',
         'execution_timestamp': execution_timestamp,
         'os_logo': os_logo,

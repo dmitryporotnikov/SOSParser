@@ -38,8 +38,10 @@ _ensure_src_on_syspath()
 # Import after sys.path adjusted
 try:
     from core.analyzer import run_analysis
+    from __version__ import __version__
 except Exception as e:
-    raise
+    # Fallback if import fails
+    __version__ = "unknown"
 
 
 # Allowed tarball extensions for sosreport
@@ -134,7 +136,7 @@ def create_app() -> Flask:
     @app.get("/")
     def index():
         exec_ts = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
-        return render_template("index.html", execution_timestamp=exec_ts)
+        return render_template("index.html", execution_timestamp=exec_ts, version=__version__)
 
     @app.post("/analyze")
     def analyze():

@@ -3,6 +3,20 @@
 
 FROM python:3.12-slim
 
+# Build arguments
+ARG VERSION=unknown
+ARG BUILD_DATE
+ARG VCS_REF
+
+# Labels
+LABEL org.opencontainers.image.title="SOSParser"
+LABEL org.opencontainers.image.description="Linux sosreport/supportconfig analyzer"
+LABEL org.opencontainers.image.version="${VERSION}"
+LABEL org.opencontainers.image.created="${BUILD_DATE}"
+LABEL org.opencontainers.image.source="https://github.com/samatild/sosparser"
+LABEL org.opencontainers.image.revision="${VCS_REF}"
+LABEL maintainer="Samuel Matildes"
+
 # Set working directory
 WORKDIR /app
 
