@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  sosparser:
+    build: .
+    container_name: sosparser
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount uploads and outputs for persistence (optional)
+      - ./data/uploads:/app/webapp/uploads
+      - ./data/outputs:/app/webapp/outputs
+    environment:
+      - WEBAPP_HOST=0.0.0.0
+      - WEBAPP_PORT=8000
+      - WEBAPP_MAX_CONTENT_MB=2048
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s

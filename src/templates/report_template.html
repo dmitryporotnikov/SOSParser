@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOSParser Report - {{ summary.hostname }}</title>
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/logviewer.css">
+    <script src="scripts/logviewer.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="report-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="logo">
+                        <img src="images/favicon.svg" alt="SOSParser Logo">
+                    </div>
+                    <div class="header-title">
+                        <h1>SOSParser Report</h1>
+                        <div class="header-info">
+                            <div class="info-item">
+                                <span class="label">Hostname:</span>
+                                <span class="value">{{ summary.hostname }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">OS:</span>
+                                <span class="value">{{ summary.os_info.PRETTY_NAME | default('Unknown') }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">Report Generated:</span>
+                                <span class="value">{{ execution_timestamp }} UTC</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% if os_logo %}
+                <div class="header-right">
+                    <img src="{{ os_logo }}" alt="OS Logo" class="os-logo">
+                </div>
+                {% endif %}
+            </div>
+        </header>
+
+        <nav class="tabs">
+            <button class="tab-button active" data-tab="summary">Summary</button>
+            <button class="tab-button" data-tab="system-config">System Config</button>
+            <button class="tab-button" data-tab="filesystem">Filesystem</button>
+            <button class="tab-button" data-tab="network">Network</button>
+            {% if cloud %}
+            <button class="tab-button" data-tab="cloud">Cloud</button>
+            {% endif %}
+            <button class="tab-button" data-tab="logs">Logs</button>
+        </nav>
+
+        <main class="content">
+            <!-- Summary Tab -->
+            <section id="summary" class="tab-content active">
+                <h2>System Summary</h2>
+                
+                <div class="info-grid">
+                    <div class="info-card">
+                        <h3>System Information</h3>
+                        <table class="info-table">
+                            <tr>
+                                <td class="label">Hostname</td>
+                                <td class="value">{{ summary.hostname }}</td>
+                            </tr>
+                            <tr>
+                                <td class="label">OS Name</td>
+                                <td class="value">{{ summary.os_info.NAME | default('Unknown') }}</td>
+                            </tr>
+                            <tr>
+                                <td class="label">OS Version</td>
+                                <td class="value">{{ summary.os_info.VERSION | default('Unknown') }}</td>
+                            </tr>
+                            <tr>
+                                <td class="label">OS ID</td>
+                                <td class="value">{{ summary.os_info.ID | default('Unknown') }}</td>
+                            </tr>
+                            <tr>
+                                <td class="label">Kernel</td>
+                                <td class="value">{{ summary.kernel_info.version | default('Unknown') }}</td>
+                            </tr>
+                            {% if summary.uptime %}
+                            <tr>
+                                <td class="label">Uptime</td>
+                                <td class="value">{{ summary.uptime }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if summary.system_load.loadavg %}
+                            <tr>
+                                <td class="label">Load Average</td>
+                                <td class="value">{{ summary.system_load.loadavg }}</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+
+                    <div class="info-card">
+                        <h3>Hardware</h3>
+                        <table class="info-table">
+                            {% if summary.dmi_info.manufacturer %}
+                            <tr>
+                                <td class="label">Manufacturer</td>
+                                <td class="value">{{ summary.dmi_info.manufacturer }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if summary.dmi_info.product %}
+                            <tr>
+                                <td class="label">Product</td>
+                                <td class="value">{{ summary.dmi_info.product }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if summary.cpu_info.model %}
+                            <tr>
+                                <td class="label">CPU Model</td>
+                                <td class="value">{{ summary.cpu_info.model }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if summary.cpu_info.processor_count %}
+                            <tr>
+                                <td class="label">CPU Count</td>
+                                <td class="value">{{ summary.cpu_info.processor_count }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if summary.cpu_info.mhz %}
+                            <tr>
+                                <td class="label">CPU MHz</td>
+                                <td class="value">{{ summary.cpu_info.mhz }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if summary.disk_info.disk_count %}
+                            <tr>
+                                <td class="label">Disk Count</td>
+                                <td class="value">{{ summary.disk_info.disk_count }}</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+
+                    <div class="info-card">
+                        <h3>Memory</h3>
+                        <table class="info-table">
+                            {% if summary.memory_info.total %}
+                            <tr>
+                                <td class="label">Total</td>
+                                <td class="value">{{ summary.memory_info.total }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if summary.memory_info.available %}
+                            <tr>
+                                <td class="label">Available</td>
+                                <td class="value">{{ summary.memory_info.available }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if summary.memory_info.free %}
+                            <tr>
+                                <td class="label">Free</td>
+                                <td class="value">{{ summary.memory_info.free }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if summary.memory_info.swap_total %}
+                            <tr>
+                                <td class="label">Swap Total</td>
+                                <td class="value">{{ summary.memory_info.swap_total }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if summary.memory_info.swap_free %}
+                            <tr>
+                                <td class="label">Swap Free</td>
+                                <td class="value">{{ summary.memory_info.swap_free }}</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+
+                    <div class="info-card">
+                        <h3>Report Metadata</h3>
+                        <table class="info-table">
+                            <tr>
+                                <td class="label">Diagnostic Created</td>
+                                <td class="value">{{ diagnostic_timestamp }}</td>
+                            </tr>
+                            <tr>
+                                <td class="label">Analysis Date</td>
+                                <td class="value">{{ execution_timestamp }} UTC</td>
+                            </tr>
+                            {% if summary.disk_info.disks %}
+                            <tr>
+                                <td class="label">Block Devices</td>
+                                <td class="value">{{ summary.disk_info.disks | join(', ') }}</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+                
+                {% if summary.cpu_info.lscpu %}
+                <div class="info-card" style="margin-top: 1rem;">
+                    <h3>CPU Details</h3>
+                    <pre>{{ summary.cpu_info.lscpu }}</pre>
+                </div>
+                {% endif %}
+                
+                {% if summary.disk_info.lsblk %}
+                <div class="info-card" style="margin-top: 1rem;">
+                    <h3>Block Devices</h3>
+                    <pre>{{ summary.disk_info.lsblk }}</pre>
+                </div>
+                {% endif %}
+            </section>
+
+            <!-- System Config Tab -->
+            <section id="system-config" class="tab-content">
+                <h2>System Configuration</h2>
+                
+                <nav class="subtabs">
+                    <button class="subtab-button active" data-subtab="general">General</button>
+                    <button class="subtab-button" data-subtab="boot">Boot & GRUB</button>
+                    <button class="subtab-button" data-subtab="authentication">Authentication</button>
+                    <button class="subtab-button" data-subtab="services">Services</button>
+                    <button class="subtab-button" data-subtab="cron">Cron</button>
+                    <button class="subtab-button" data-subtab="security">Security</button>
+                    <button class="subtab-button" data-subtab="packages">Packages</button>
+                    <button class="subtab-button" data-subtab="kernel-modules">Kernel</button>
+                    <button class="subtab-button" data-subtab="users-groups">Users</button>
+                </nav>
+
+                <div id="general" class="subtab-content active">
+                    <h3>General Configuration</h3>
+                    {% if system_config.general %}
+                    <table class="info-table">
+                        {% if system_config.general.hostname %}
+                        <tr><td class="label">Hostname</td><td class="value">{{ system_config.general.hostname }}</td></tr>
+                        {% endif %}
+                        {% if system_config.general.timezone %}
+                        <tr><td class="label">Timezone</td><td class="value">{{ system_config.general.timezone }}</td></tr>
+                        {% endif %}
+                        {% if system_config.general.locale %}
+                        <tr><td class="label">Locale</td><td class="value"><pre>{{ system_config.general.locale }}</pre></td></tr>
+                        {% endif %}
+                        {% if system_config.general.machine_id %}
+                        <tr><td class="label">Machine ID</td><td class="value"><code>{{ system_config.general.machine_id }}</code></td></tr>
+                        {% endif %}
+                    </table>
+                    {% else %}
+                    <p>No general configuration data available</p>
+                    {% endif %}
+                </div>
+
+                <div id="boot" class="subtab-content">
+                    <h3>Boot & GRUB Configuration</h3>
+                    {% if system_config.boot %}
+                        {% if system_config.boot.cmdline %}
+                        <h4>Kernel Command Line</h4>
+                        <pre>{{ system_config.boot.cmdline }}</pre>
+                        {% endif %}
+                        {% if system_config.boot.loader_entries %}
+                        <h4>Boot Loader Entries</h4>
+                        <ul>
+                        {% for entry in system_config.boot.loader_entries %}
+                            <li>{{ entry }}</li>
+                        {% endfor %}
+                        </ul>
+                        {% endif %}
+                        {% if system_config.boot.grub_cfg %}
+                        <h4>GRUB Configuration (first 5000 chars)</h4>
+                        <pre>{{ system_config.boot.grub_cfg }}</pre>
+                        {% endif %}
+                    {% else %}
+                    <p>No boot configuration data available</p>
+                    {% endif %}
+                </div>
+
+                <div id="authentication" class="subtab-content">
+                    <h3>Authentication Configuration</h3>
+                    {% if system_config.authentication %}
+                        {% if system_config.authentication.nsswitch %}
+                        <h4>NSSwitch Configuration</h4>
+                        <pre>{{ system_config.authentication.nsswitch }}</pre>
+                        {% endif %}
+                        {% if system_config.authentication.sshd_config %}
+                        <h4>SSHD Configuration</h4>
+                        <pre>{{ system_config.authentication.sshd_config }}</pre>
+                        {% endif %}
+                        {% if system_config.authentication.pam_files %}
+                        <h4>PAM Configuration Files</h4>
+                        <p>Found {{ system_config.authentication.pam_files | length }} PAM configuration files</p>
+                        {% endif %}
+                    {% else %}
+                    <p>No authentication configuration data available</p>
+                    {% endif %}
+                </div>
+
+                <div id="services" class="subtab-content">
+                    <h3>System Services</h3>
+                    {% if system_config.services %}
+                        {% if system_config.services.failed_services %}
+                        <h4>Failed Services</h4>
+                        <pre>{{ system_config.services.failed_services }}</pre>
+                        {% endif %}
+                        {% if system_config.services.service_list %}
+                        <h4>Active Services</h4>
+                        <pre>{{ system_config.services.service_list }}</pre>
+                        {% endif %}
+                    {% else %}
+                    <p>No service data available</p>
+                    {% endif %}
+                </div>
+
+                <div id="cron" class="subtab-content">
+                    <h3>Cron Jobs</h3>
+                    {% if system_config.cron %}
+                        {% if system_config.cron.crontab %}
+                        <h4>System Crontab</h4>
+                        <pre>{{ system_config.cron.crontab }}</pre>
+                        {% endif %}
+                        {% if system_config.cron.cron_d %}
+                        <h4>Cron.d Files</h4>
+                        {% for filename, content in system_config.cron.cron_d.items() %}
+                        <h5>{{ filename }}</h5>
+                        <pre>{{ content }}</pre>
+                        {% endfor %}
+                        {% endif %}
+                    {% else %}
+                    <p>No cron job data available</p>
+                    {% endif %}
+                </div>
+
+                <div id="security" class="subtab-content">
+                    <h3>Security Configuration</h3>
+                    {% if system_config.security %}
+                        {% if system_config.security.selinux_status %}
+                        <h4>SELinux Status</h4>
+                        <pre>{{ system_config.security.selinux_status }}</pre>
+                        {% endif %}
+                        {% if system_config.security.firewall_zones %}
+                        <h4>Firewall Zones</h4>
+                        <pre>{{ system_config.security.firewall_zones }}</pre>
+                        {% endif %}
+                        {% if system_config.security.audit_rules %}
+                        <h4>Audit Rules</h4>
+                        <pre>{{ system_config.security.audit_rules }}</pre>
+                        {% endif %}
+                    {% else %}
+                    <p>No security configuration data available</p>
+                    {% endif %}
+                </div>
+
+                <div id="packages" class="subtab-content">
+                    <h3>Package Management</h3>
+                    {% if system_config.packages %}
+                        {% if system_config.packages.rpm_count %}
+                        <h4>Installed Packages</h4>
+                        <p>Total RPM packages: <strong>{{ system_config.packages.rpm_count }}</strong></p>
+                        {% if system_config.packages.rpm_sample %}
+                        <p>Sample (first 50):</p>
+                        <pre>{{ system_config.packages.rpm_sample | join('\n') }}</pre>
+                        {% endif %}
+                        {% endif %}
+                        {% if system_config.packages.repos %}
+                        <h4>Configured Repositories</h4>
+                        <pre>{{ system_config.packages.repos }}</pre>
+                        {% endif %}
+                        {% if system_config.packages.package_manager_conf %}
+                        <h4>Package Manager Configuration</h4>
+                        <pre>{{ system_config.packages.package_manager_conf }}</pre>
+                        {% endif %}
+                    {% else %}
+                    <p>No package management data available</p>
+                    {% endif %}
+                </div>
+
+                <div id="kernel-modules" class="subtab-content">
+                    <h3>Kernel Modules & Parameters</h3>
+                    {% if system_config.kernel_modules %}
+                        {% if system_config.kernel_modules.lsmod %}
+                        <h4>Loaded Modules</h4>
+                        <pre>{{ system_config.kernel_modules.lsmod }}</pre>
+                        {% endif %}
+                        {% if system_config.kernel_modules.sysctl_all %}
+                        <h4>Kernel Parameters (sysctl)</h4>
+                        <pre>{{ system_config.kernel_modules.sysctl_all }}</pre>
+                        {% endif %}
+                        {% if system_config.kernel_modules.modprobe_d %}
+                        <h4>Module Configuration (/etc/modprobe.d/)</h4>
+                        {% for filename, content in system_config.kernel_modules.modprobe_d.items() %}
+                        <h5>{{ filename }}</h5>
+                        <pre>{{ content }}</pre>
+                        {% endfor %}
+                        {% endif %}
+                    {% else %}
+                    <p>No kernel module data available</p>
+                    {% endif %}
+                </div>
+
+                <div id="users-groups" class="subtab-content">
+                    <h3>Users & Groups</h3>
+                    {% if system_config.users_groups %}
+                        {% if system_config.users_groups.passwd %}
+                        <h4>/etc/passwd</h4>
+                        <pre>{{ system_config.users_groups.passwd }}</pre>
+                        {% endif %}
+                        {% if system_config.users_groups.group %}
+                        <h4>/etc/group</h4>
+                        <pre>{{ system_config.users_groups.group }}</pre>
+                        {% endif %}
+                        {% if system_config.users_groups.sudoers %}
+                        <h4>/etc/sudoers</h4>
+                        <pre>{{ system_config.users_groups.sudoers }}</pre>
+                        {% endif %}
+                    {% else %}
+                    <p>No user/group data available</p>
+                    {% endif %}
+                </div>
+            </section>
+
+            <!-- Filesystem Tab -->
+            <section id="filesystem" class="tab-content">
+                <h2>Filesystem</h2>
+                
+                <nav class="subtabs">
+                    <button class="subtab-button active" data-subtab="mounts">Mounts</button>
+                    <button class="subtab-button" data-subtab="lvm">LVM</button>
+                    <button class="subtab-button" data-subtab="disk-usage">Disk Usage</button>
+                    <button class="subtab-button" data-subtab="filesystems">Filesystems</button>
+                </nav>
+
+                <div id="mounts" class="subtab-content active">
+                    <h3>Mount Points</h3>
+                    {% if filesystem.mounts %}
+                        {% if filesystem.mounts.fstab %}
+                        <h4>/etc/fstab</h4>
+                        <pre>{{ filesystem.mounts.fstab }}</pre>
+                        {% endif %}
+                        {% if filesystem.mounts.proc_mounts %}
+                        <h4>Current Mounts</h4>
+                        <pre>{{ filesystem.mounts.proc_mounts }}</pre>
+                        {% endif %}
+                    {% else %}
+                    <p>No mount data available</p>
+                    {% endif %}
+                </div>
+
+                <div id="lvm" class="subtab-content">
+                    <h3>LVM Configuration</h3>
+                    {% if filesystem.lvm %}
+                        {% if filesystem.lvm.pvs %}
+                        <h4>Physical Volumes</h4>
+                        <pre>{{ filesystem.lvm.pvs }}</pre>
+                        {% endif %}
+                        {% if filesystem.lvm.vgs %}
+                        <h4>Volume Groups</h4>
+                        <pre>{{ filesystem.lvm.vgs }}</pre>
+                        {% endif %}
+                        {% if filesystem.lvm.lvs %}
+                        <h4>Logical Volumes</h4>
+                        <pre>{{ filesystem.lvm.lvs }}</pre>
+                        {% endif %}
+                    {% else %}
+                    <p>No LVM data available</p>
+                    {% endif %}
+                </div>
+
+                <div id="disk-usage" class="subtab-content">
+                    <h3>Disk Usage</h3>
+                    {% if filesystem.disk_usage %}
+                        {% if filesystem.disk_usage.df %}
+                        <h4>Filesystem Usage</h4>
+                        <pre>{{ filesystem.disk_usage.df }}</pre>
+                        {% endif %}
+                        {% if filesystem.disk_usage.df_inodes %}
+                        <h4>Inode Usage</h4>
+                        <pre>{{ filesystem.disk_usage.df_inodes }}</pre>
+                        {% endif %}
+                    {% else %}
+                    <p>No disk usage data available</p>
+                    {% endif %}
+                </div>
+
+                <div id="filesystems" class="subtab-content">
+                    <h3>Filesystem Information</h3>
+                    {% if filesystem.filesystems %}
+                        {% if filesystem.filesystems.blkid %}
+                        <h4>Block Device IDs</h4>
+                        <pre>{{ filesystem.filesystems.blkid }}</pre>
+                        {% endif %}
+                        {% if filesystem.filesystems.filesystems %}
+                        <h4>Supported Filesystems</h4>
+                        <pre>{{ filesystem.filesystems.filesystems }}</pre>
+                        {% endif %}
+                    {% else %}
+                    <p>No filesystem data available</p>
+                    {% endif %}
+                </div>
+            </section>
+
+            <!-- Network Tab -->
+            <section id="network" class="tab-content">
+                <h2>Network Configuration</h2>
+                
+                <nav class="subtabs">
+                    <button class="subtab-button active" data-subtab="interfaces">Interfaces</button>
+                    <button class="subtab-button" data-subtab="routing">Routing</button>
+                    <button class="subtab-button" data-subtab="dns">DNS</button>
+                    <button class="subtab-button" data-subtab="firewall">Firewall</button>
+                    <button class="subtab-button" data-subtab="networkmanager">NetworkManager</button>
+                </nav>
+
+                <div id="interfaces" class="subtab-content active">
+                    <h3>Network Interfaces</h3>
+                    {% if network.interfaces %}
+                        {% if network.interfaces.ip_addr %}
+                        <h4>IP Addresses</h4>
+                        <pre>{{ network.interfaces.ip_addr }}</pre>
+                        {% endif %}
+                        {% if network.interfaces.ip_link %}
+                        <h4>Link Statistics</h4>
+                        <pre>{{ network.interfaces.ip_link }}</pre>
+                        {% endif %}
+                    {% else %}
+                    <p>No interface data available</p>
+                    {% endif %}
+                </div>
+
+                <div id="routing" class="subtab-content">
+                    <h3>Routing Information</h3>
+                    {% if network.routing %}
+                        {% if network.routing.ip_route %}
+                        <h4>IPv4 Routes</h4>
+                        <pre>{{ network.routing.ip_route }}</pre>
+                        {% endif %}
+                        {% if network.routing.ip6_route %}
+                        <h4>IPv6 Routes</h4>
+                        <pre>{{ network.routing.ip6_route }}</pre>
+                        {% endif %}
+                    {% else %}
+                    <p>No routing data available</p>
+                    {% endif %}
+                </div>
+
+                <div id="dns" class="subtab-content">
+                    <h3>DNS Configuration</h3>
+                    {% if network.dns %}
+                        {% if network.dns.resolv_conf %}
+                        <h4>/etc/resolv.conf</h4>
+                        <pre>{{ network.dns.resolv_conf }}</pre>
+                        {% endif %}
+                        {% if network.dns.hosts %}
+                        <h4>/etc/hosts</h4>
+                        <pre>{{ network.dns.hosts }}</pre>
+                        {% endif %}
+                    {% else %}
+                    <p>No DNS data available</p>
+                    {% endif %}
+                </div>
+
+                <div id="firewall" class="subtab-content">
+                    <h3>Firewall Configuration</h3>
+                    {% if network.firewall %}
+                        {% if network.firewall.firewall_zones %}
+                        <h4>Firewalld Zones</h4>
+                        <pre>{{ network.firewall.firewall_zones }}</pre>
+                        {% endif %}
+                        {% if network.firewall.iptables %}
+                        <h4>iptables Rules</h4>
+                        <pre>{{ network.firewall.iptables }}</pre>
+                        {% endif %}
+                    {% else %}
+                    <p>No firewall data available</p>
+                    {% endif %}
+                </div>
+
+                <div id="networkmanager" class="subtab-content">
+                    <h3>NetworkManager</h3>
+                    {% if network.networkmanager %}
+                        {% if network.networkmanager.nm_status %}
+                        <h4>NetworkManager Status</h4>
+                        <pre>{{ network.networkmanager.nm_status }}</pre>
+                        {% endif %}
+                        {% if network.networkmanager.nm_devices %}
+                        <h4>Device Status</h4>
+                        <pre>{{ network.networkmanager.nm_devices }}</pre>
+                        {% endif %}
+                    {% else %}
+                    <p>No NetworkManager data available</p>
+                    {% endif %}
+                </div>
+            </section>
+
+            <!-- Cloud Tab (conditional) -->
+            {% if cloud %}
+            <section id="cloud" class="tab-content">
+                <h2>Cloud Services</h2>
+                
+                <div class="info-grid">
+                    <div class="info-card">
+                        <h3>Cloud Provider</h3>
+                        <table class="info-table">
+                            <tr>
+                                <td class="label">Provider</td>
+                                <td class="value">
+                                    {% if cloud.provider == 'aws' %}Amazon Web Services (AWS)
+                                    {% elif cloud.provider == 'azure' %}Microsoft Azure
+                                    {% elif cloud.provider == 'gcp' %}Google Cloud Platform
+                                    {% elif cloud.provider == 'oracle' %}Oracle Cloud Infrastructure
+                                    {% else %}{{ cloud.provider }}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% if cloud.virtualization.virt_what %}
+                            <tr>
+                                <td class="label">Virtualization</td>
+                                <td class="value">{{ cloud.virtualization.virt_what }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if cloud.virtualization.product_name %}
+                            <tr>
+                                <td class="label">Product</td>
+                                <td class="value">{{ cloud.virtualization.product_name }}</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+
+                <nav class="subtabs">
+                    <button class="subtab-button active" data-subtab="cloud-overview">Overview</button>
+                    <button class="subtab-button" data-subtab="cloud-init">Cloud-Init</button>
+                    {% if cloud.provider == 'aws' %}
+                    <button class="subtab-button" data-subtab="aws">AWS Services</button>
+                    {% elif cloud.provider == 'azure' %}
+                    <button class="subtab-button" data-subtab="azure">Azure Services</button>
+                    {% elif cloud.provider == 'gcp' %}
+                    <button class="subtab-button" data-subtab="gcp">GCP Services</button>
+                    {% endif %}
+                </nav>
+
+                <!-- Overview Subtab -->
+                <div id="cloud-overview" class="subtab-content active">
+                    <h3>Cloud Environment Overview</h3>
+                    
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <h4>Environment Details</h4>
+                            <table class="info-table">
+                                <tr>
+                                    <td class="label">Cloud Provider</td>
+                                    <td class="value">
+                                        {% if cloud.provider == 'aws' %}<strong>Amazon Web Services (AWS)</strong>
+                                        {% elif cloud.provider == 'azure' %}<strong>Microsoft Azure</strong>
+                                        {% elif cloud.provider == 'gcp' %}<strong>Google Cloud Platform</strong>
+                                        {% elif cloud.provider == 'oracle' %}<strong>Oracle Cloud Infrastructure</strong>
+                                        {% else %}<strong>{{ cloud.provider }}</strong>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% if cloud.virtualization %}
+                                    {% if cloud.virtualization.virt_what %}
+                                    <tr>
+                                        <td class="label">Virtualization</td>
+                                        <td class="value"><code>{{ cloud.virtualization.virt_what }}</code></td>
+                                    </tr>
+                                    {% endif %}
+                                    {% if cloud.virtualization.systemd_virt %}
+                                    <tr>
+                                        <td class="label">Detection Method</td>
+                                        <td class="value">systemd-detect-virt: <code>{{ cloud.virtualization.systemd_virt }}</code></td>
+                                    </tr>
+                                    {% endif %}
+                                    {% if cloud.virtualization.product_name %}
+                                    <tr>
+                                        <td class="label">Product Name</td>
+                                        <td class="value">{{ cloud.virtualization.product_name }}</td>
+                                    </tr>
+                                    {% endif %}
+                                {% endif %}
+                            </table>
+                        </div>
+                    </div>
+                    
+                    {% if cloud.provider == 'aws' and cloud.aws %}
+                        {% if cloud.aws.instance_id or cloud.aws.instance_type or cloud.aws.availability_zone %}
+                        <div class="info-card" style="margin-top: 1rem;">
+                            <h4>AWS EC2 Instance Details</h4>
+                            <table class="info-table">
+                                {% if cloud.aws.instance_id %}
+                                <tr>
+                                    <td class="label">Instance ID</td>
+                                    <td class="value"><code>{{ cloud.aws.instance_id }}</code></td>
+                                </tr>
+                                {% endif %}
+                                {% if cloud.aws.instance_type %}
+                                <tr>
+                                    <td class="label">Instance Type</td>
+                                    <td class="value"><code>{{ cloud.aws.instance_type }}</code></td>
+                                </tr>
+                                {% endif %}
+                                {% if cloud.aws.availability_zone %}
+                                <tr>
+                                    <td class="label">Availability Zone</td>
+                                    <td class="value"><code>{{ cloud.aws.availability_zone }}</code></td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+                        {% endif %}
+                    {% elif cloud.provider == 'azure' and cloud.azure %}
+                        {% if cloud.azure.extensions %}
+                        <div class="info-card" style="margin-top: 1rem;">
+                            <h4>Azure VM Extensions</h4>
+                            <ul>
+                            {% for ext in cloud.azure.extensions %}
+                                <li><code>{{ ext }}</code></li>
+                            {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                    
+                    {% if cloud.cloud_init %}
+                        {% if cloud.cloud_init.cloud_status %}
+                        <div class="info-card" style="margin-top: 1rem;">
+                            <h4>Cloud-Init Quick Status</h4>
+                            <pre style="max-height: 200px;">{{ cloud.cloud_init.cloud_status }}</pre>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+
+                <!-- Cloud-Init Subtab -->
+                <div id="cloud-init" class="subtab-content">
+                    <h3>Cloud-Init Configuration</h3>
+                    
+                    {% if cloud.cloud_init %}
+                        {% if cloud.cloud_init.cloud_status %}
+                        <h4>Cloud-Init Status</h4>
+                        <pre>{{ cloud.cloud_init.cloud_status }}</pre>
+                        {% endif %}
+                        
+                        {% if cloud.cloud_init.cloud_cfg %}
+                        <h4>Cloud Configuration (/etc/cloud/cloud.cfg)</h4>
+                        <pre>{{ cloud.cloud_init.cloud_cfg }}</pre>
+                        {% endif %}
+                        
+                        {% if cloud.cloud_init.cloud_init_log %}
+                        <h4>Cloud-Init Log (last 100 lines)</h4>
+                        <pre>{{ cloud.cloud_init.cloud_init_log }}</pre>
+                        {% endif %}
+                        
+                        {% if cloud.cloud_init.cloud_init_output %}
+                        <h4>Cloud-Init Output (last 100 lines)</h4>
+                        <pre>{{ cloud.cloud_init.cloud_init_output }}</pre>
+                        {% endif %}
+                    {% else %}
+                    <p>No cloud-init data available</p>
+                    {% endif %}
+                </div>
+
+                <!-- AWS Services Subtab -->
+                {% if cloud.provider == 'aws' %}
+                <div id="aws" class="subtab-content">
+                    <h3>AWS-Specific Services</h3>
+                    
+                    {% if cloud.aws %}
+                        {% if cloud.aws.ssm_agent_log %}
+                        <h4>AWS Systems Manager Agent</h4>
+                        <pre>{{ cloud.aws.ssm_agent_log }}</pre>
+                        {% endif %}
+                        
+                        {% if cloud.aws.cloudwatch_agent_log %}
+                        <h4>CloudWatch Agent</h4>
+                        <pre>{{ cloud.aws.cloudwatch_agent_log }}</pre>
+                        {% endif %}
+                        
+                        {% if cloud.aws.ena_driver %}
+                        <h4>ENA Driver Information</h4>
+                        <pre>{{ cloud.aws.ena_driver }}</pre>
+                        {% endif %}
+                    {% else %}
+                    <p>No AWS-specific service data available</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Azure Services Subtab -->
+                {% if cloud.provider == 'azure' %}
+                <div id="azure" class="subtab-content">
+                    <h3>Azure-Specific Services</h3>
+                    
+                    {% if cloud.azure %}
+                        {% if cloud.azure.waagent_conf %}
+                        <h4>WALinuxAgent Configuration</h4>
+                        <pre>{{ cloud.azure.waagent_conf }}</pre>
+                        {% endif %}
+                        
+                        {% if cloud.azure.waagent_log %}
+                        <h4>WALinuxAgent Log (last 100 lines)</h4>
+                        <pre>{{ cloud.azure.waagent_log }}</pre>
+                        {% endif %}
+                        
+                        {% if cloud.azure.instance_metadata %}
+                        <h4>Azure Instance Metadata</h4>
+                        <pre>{{ cloud.azure.instance_metadata }}</pre>
+                        {% endif %}
+                        
+                        {% if cloud.azure.ovf_env %}
+                        <h4>OVF Environment</h4>
+                        <pre>{{ cloud.azure.ovf_env }}</pre>
+                        {% endif %}
+                    {% else %}
+                    <p>No Azure-specific service data available</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- GCP Services Subtab -->
+                {% if cloud.provider == 'gcp' %}
+                <div id="gcp" class="subtab-content">
+                    <h3>Google Cloud Platform Services</h3>
+                    
+                    {% if cloud.gcp %}
+                        {% if cloud.gcp.guest_agent_log %}
+                        <h4>Google Guest Agent (last 100 lines)</h4>
+                        <pre>{{ cloud.gcp.guest_agent_log }}</pre>
+                        {% endif %}
+                        
+                        {% if cloud.gcp.osconfig_agent_log %}
+                        <h4>OS Config Agent (last 50 lines)</h4>
+                        <pre>{{ cloud.gcp.osconfig_agent_log }}</pre>
+                        {% endif %}
+                        
+                        {% if cloud.gcp.instance_metadata %}
+                        <h4>GCP Instance Metadata</h4>
+                        <pre>{{ cloud.gcp.instance_metadata }}</pre>
+                        {% endif %}
+                    {% else %}
+                    <p>No GCP-specific service data available</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+            </section>
+            {% endif %}
+
+            <!-- Logs Tab -->
+            <section id="logs" class="tab-content">
+                <h2>System Logs</h2>
+                
+                <nav class="subtabs">
+                    <button class="subtab-button active" data-subtab="system">System</button>
+                    <button class="subtab-button" data-subtab="kernel">Kernel</button>
+                    <button class="subtab-button" data-subtab="auth">Authentication</button>
+                    <button class="subtab-button" data-subtab="services">Services</button>
+                </nav>
+
+                <div id="system" class="subtab-content active">
+                    <h3>System Logs</h3>
+                    {% if logs.system %}
+                        {% if logs.system.messages %}
+                        <h4>/var/log/messages</h4>
+                        <div id="log-messages" class="log-container"></div>
+                        <script>
+                            new LogViewer('log-messages', {{ logs.system.messages | tojson }});
+                        </script>
+                        {% endif %}
+                        {% if logs.system.syslog %}
+                        <h4>/var/log/syslog</h4>
+                        <div id="log-syslog" class="log-container"></div>
+                        <script>
+                            new LogViewer('log-syslog', {{ logs.system.syslog | tojson }});
+                        </script>
+                        {% endif %}
+                    {% else %}
+                    <p>No system log data available</p>
+                    {% endif %}
+                </div>
+
+                <div id="kernel" class="subtab-content">
+                    <h3>Kernel Logs</h3>
+                    {% if logs.kernel %}
+                        {% if logs.kernel.dmesg %}
+                        <h4>dmesg</h4>
+                        <div id="log-dmesg" class="log-container"></div>
+                        <script>
+                            new LogViewer('log-dmesg', {{ logs.kernel.dmesg | tojson }});
+                        </script>
+                        {% endif %}
+                        {% if logs.kernel.kern_log %}
+                        <h4>/var/log/kern.log</h4>
+                        <div id="log-kern" class="log-container"></div>
+                        <script>
+                            new LogViewer('log-kern', {{ logs.kernel.kern_log | tojson }});
+                        </script>
+                        {% endif %}
+                    {% else %}
+                    <p>No kernel log data available</p>
+                    {% endif %}
+                </div>
+
+                <div id="auth" class="subtab-content">
+                    <h3>Authentication Logs</h3>
+                    {% if logs.auth %}
+                        {% if logs.auth.secure %}
+                        <h4>/var/log/secure</h4>
+                        <div id="log-secure" class="log-container"></div>
+                        <script>
+                            new LogViewer('log-secure', {{ logs.auth.secure | tojson }});
+                        </script>
+                        {% endif %}
+                        {% if logs.auth.auth_log %}
+                        <h4>/var/log/auth.log</h4>
+                        <div id="log-auth" class="log-container"></div>
+                        <script>
+                            new LogViewer('log-auth', {{ logs.auth.auth_log | tojson }});
+                        </script>
+                        {% endif %}
+                    {% else %}
+                    <p>No authentication log data available</p>
+                    {% endif %}
+                </div>
+
+                <div id="services" class="subtab-content">
+                    <h3>Service Logs</h3>
+                    {% if logs.services %}
+                        {% if logs.services.journal %}
+                        <h4>Journal</h4>
+                        <div id="log-journal" class="log-container"></div>
+                        <script>
+                            new LogViewer('log-journal', {{ logs.services.journal | tojson }});
+                        </script>
+                        {% endif %}
+                        {% if logs.services.cron %}
+                        <h4>Cron Log</h4>
+                        <div id="log-cron" class="log-container"></div>
+                        <script>
+                            new LogViewer('log-cron', {{ logs.services.cron | tojson }});
+                        </script>
+                        {% endif %}
+                    {% else %}
+                    <p>No service log data available</p>
+                    {% endif %}
+                </div>
+            </section>
+        </main>
+
+        <footer class="report-footer">
+            <p>SOSParser | Generated: {{ execution_timestamp }} UTC</p>
+        </footer>
+    </div>
+
+    <script src="scripts/main.js"></script>
+</body>
+</html>

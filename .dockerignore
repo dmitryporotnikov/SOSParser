@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+LICENSE
+README.md
+DOCKER.md
+sosreport_tree.txt
+
+# Test files
+sosreport*.tar.*
+*.txz
+scc_*
+
+# Webapp temporary directories (will be created in container)
+webapp/uploads/
+webapp/outputs/
+
+# Example data
+examples/
+sosreportexample/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Other
+*.log
