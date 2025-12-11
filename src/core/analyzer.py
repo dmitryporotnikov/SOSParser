@@ -3,6 +3,7 @@
 
 import tempfile
 import shutil
+import tarfile
 from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
 
@@ -128,6 +129,8 @@ class SOSReportAnalyzer:
         config_analyzer = SupportconfigSystemConfig(extracted_dir)
         net_analyzer = SupportconfigNetwork(extracted_dir)
         fs_analyzer = SupportconfigFilesystem(extracted_dir)
+        from analyzers.supportconfig.parser import SupportconfigParser
+        log_parser = SupportconfigParser(extracted_dir)
         
         # Get system information
         hostname = sys_analyzer.get_hostname()
@@ -144,14 +147,14 @@ class SOSReportAnalyzer:
         Logger.debug("Analyzing system configuration (supportconfig)")
         config_data = config_analyzer.analyze()
         system_config = {
-            'general': {'note': 'Supportconfig provides pre-processed system information'},
+            'general': config_data.get('general', {}),
             'boot': config_data.get('boot', {}),
             'authentication': config_data.get('ssh', {}),  # SSH config goes to authentication
-            'services': {},
-            'cron': {},
-            'security': {},
-            'packages': {},
-            'kernel_modules': {},
+            'services': config_data.get('services', {}),
+            'cron': config_data.get('cron', {}),
+            'security': config_data.get('security', {}),
+            'packages': config_data.get('packages', {}),
+            'kernel_modules': config_data.get('kernel_modules', {}),
             'users_groups': {},
         }
         
@@ -161,16 +164,80 @@ class SOSReportAnalyzer:
         # Analyze network
         network = net_analyzer.analyze()
         
-        # Logs (basic for supportconfig)
+        # Logs
+        system_logs = {}
+        messages = log_parser.read_file('messages.txt')
+        if messages:
+            system_logs['messages'] = messages
+        messages_config = log_parser.read_file('messages_config.txt')
+        if messages_config:
+            system_logs['syslog'] = messages_config
+        messages_localwarn = log_parser.read_file('messages_localwarn.txt')
+        if messages_localwarn and 'syslog' not in system_logs:
+            system_logs['syslog'] = messages_localwarn
+
+        kernel_logs = {}
+        dmesg = log_parser.get_command_output('boot.txt', '/bin/dmesg -T')
+        if dmesg:
+            kernel_logs['dmesg'] = dmesg
+
+        auth_logs = {}
+        security_audit = log_parser.read_file('security-audit.txt')
+        if security_audit:
+            sections = log_parser.extract_sections(security_audit)
+            for section in sections:
+                header = section.get('header', '')
+                content = section.get('content', '')
+                # Check header or first line of content for audit log path
+                first_line = content.split('\n', 1)[0] if content else ''
+                if '/var/log/audit/audit.log' in header or '/var/log/audit/audit.log' in first_line:
+                    auth_logs['audit_log'] = content.strip()
+                    break
+
         logs = {
-            'system': {'content': 'Log data available in messages_config.txt', 'analysis': {}},
-            'kernel': {'content': '', 'analysis': {}},
-            'auth': {'content': '', 'analysis': {}},
-            'services': {'content': '', 'analysis': {}},
+            'system': system_logs,
+            'kernel': kernel_logs,
+            'auth': auth_logs,
+            'services': {},
         }
         
-        # Cloud detection (TODO: implement for supportconfig)
+        # Cloud detection from supportconfig public_cloud directory
         cloud = None
+        public_cloud_dir = extracted_dir / 'public_cloud'
+        if public_cloud_dir.exists():
+            cloud = {}
+
+            def read_optional(path: Path, limit: int | None = None):
+                try:
+                    text = path.read_text(encoding='utf-8', errors='ignore')
+                    return text[:limit] if limit else text
+                except Exception:
+                    return None
+
+            metadata = read_optional(public_cloud_dir / 'metadata.txt', 5000)
+            instanceinit = read_optional(public_cloud_dir / 'instanceinit.txt', 5000)
+            hosts_pc = read_optional(public_cloud_dir / 'hosts.txt', 4000)
+            cloudregister = read_optional(public_cloud_dir / 'cloudregister.txt', 4000)
+            credentials = read_optional(public_cloud_dir / 'credentials.txt', 2000)
+            osrelease_pc = read_optional(public_cloud_dir / 'osrelease.txt', 1000)
+
+            provider = None
+            for blob in (metadata, instanceinit, cloudregister, hosts_pc):
+                if blob and 'azure' in blob.lower():
+                    provider = 'azure'
+                    break
+            cloud['provider'] = provider or 'unknown'
+            cloud['virtualization'] = {}
+            cloud['cloud_init'] = {}
+            if instanceinit:
+                cloud['cloud_init']['cloud_status'] = instanceinit
+            cloud['azure'] = {
+                'metadata': metadata,
+                'hosts': hosts_pc,
+                'cloudregister': cloudregister,
+                'credentials': credentials,
+                'osrelease': osrelease_pc,
+            }
         
         return (hostname, os_info, kernel_info, uptime, cpu_info, memory_info, 
                 disk_info, system_load, dmi_info, system_config, filesystem, network, logs, cloud)
@@ -397,3 +464,65 @@ def run_analysis(input_path, debug_mode=False, save_next_to_tarball: bool = True
     analyzer.cleanup()
     
     return output_path
+
+
+def generate_supportconfig_example_report(
+    example_tarball_path: str | None = None,
+    output_dir: str | None = None,
+    recreate_tarball: bool = False,
+):
+    """
+    Generate a supportconfig report using the bundled example data.
+    
+    This mimics the upload flow by calling run_analysis on a .txz archive and
+    writes the report into a dedicated test directory under examples/.
+    
+    Args:
+        example_tarball_path: Optional path to a supportconfig .txz file. If not
+            provided, defaults to examples/scc_sles15_251211_1144.txz.
+        output_dir: Optional directory where the report will be written. If not
+            provided, defaults to examples/test_reports/supportconfig_boot.
+        recreate_tarball: When True and the tarball path does not exist, package
+            the decompressed example folder into a new .txz for testing.
+    
+    Returns:
+        Path to the generated report HTML file.
+    """
+    project_root = Path(__file__).resolve().parents[2]
+    default_example = project_root / "examples" / "scc_sles15_251211_1144.txz"
+    tarball_path = Path(example_tarball_path) if example_tarball_path else default_example
+    extracted_example = project_root / "examples" / "scc_sles15_251211_1144"
+
+    if not tarball_path.exists():
+        if not extracted_example.exists():
+            raise FileNotFoundError(
+                f"Example data missing at {extracted_example}; cannot build supportconfig archive."
+            )
+        if recreate_tarball:
+            Logger.info(f"Creating supportconfig test archive at {tarball_path}")
+            tarball_path.parent.mkdir(parents=True, exist_ok=True)
+            with tarfile.open(tarball_path, "w:xz") as tar:
+                tar.add(extracted_example, arcname=extracted_example.name)
+        else:
+            raise FileNotFoundError(
+                f"Supportconfig archive not found at {tarball_path}. "
+                "Pass recreate_tarball=True to build it from the decompressed example."
+            )
+
+    report_output_dir = (
+        Path(output_dir)
+        if output_dir
+        else project_root / "examples" / "test_reports" / "supportconfig_boot"
+    )
+    report_output_dir.mkdir(parents=True, exist_ok=True)
+    Logger.info(
+        f"Generating supportconfig test report from {tarball_path} into {report_output_dir}"
+    )
+
+    # Keep debug enabled to mimic the upload flow visibility.
+    return run_analysis(
+        str(tarball_path),
+        debug_mode=True,
+        save_next_to_tarball=False,
+        output_dir_override=str(report_output_dir),
+    )
