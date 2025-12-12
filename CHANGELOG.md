@@ -13,6 +13,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.2.2] - 2025-12-12
+
+### Added
+- Saved reports browser in the web UI with open/delete actions and a GitHub header link.
+- API endpoints to list and delete saved reports.
+- Dockerfile volumes and README instructions for persisting uploads/outputs.
+
+### Changed
+- Reports are no longer deleted after viewing; outputs persist for browsing.
+- Report viewer rewrites asset href/src for images (including favicon) to ensure icons load.
+- Home header title is plain text (no link) per UX request; GitHub icon uses inline SVG.
+
+### Fixed
+- Report discovery now searches nested token subfolders so saved reports display in the browser panel.
+
+---
+
 ## [0.2.1] - 2025-12-11
 
 ### Added

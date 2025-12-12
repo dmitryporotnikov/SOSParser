@@ -19,6 +19,7 @@ from flask import (
     flash,
     make_response,
     after_this_request,
+    jsonify,
 )
 from werkzeug.utils import secure_filename
 import shutil
@@ -149,9 +150,8 @@ def create_app() -> Flask:
     def report_images(filename: str):
         return send_from_directory(str(report_images_dir), filename, as_attachment=False)
 
-    # Cleanup uploads/ and outputs/ on startup
+    # Cleanup uploads/ on startup (keep outputs for persistence)
     _cleanup_dir_contents(uploads_dir)
-    _cleanup_dir_contents(outputs_dir)
 
     @app.get("/")
     def index():
@@ -205,6 +205,70 @@ def create_app() -> Flask:
         redirect_url = url_for("view_report", token=token, path=rel_path)
         return redirect(redirect_url)
 
+    def _collect_reports() -> list[dict]:
+        """Enumerate saved reports under OUTPUT_FOLDER."""
+        output_root = Path(app.config["OUTPUT_FOLDER"]).resolve()
+        if not output_root.exists():
+            return []
+        items: list[dict] = []
+        for entry in output_root.iterdir():
+            if not entry.is_dir():
+                continue
+            token = entry.name
+            try:
+                # ensure within root
+                entry.resolve().relative_to(output_root)
+            except Exception:
+                continue
+            # Try to locate a report file (prefer report.html, search recursively)
+            report_path = None
+            candidate = entry / "report.html"
+            if candidate.exists():
+                report_path = candidate
+            else:
+                html_files = sorted(entry.rglob("*.html"))
+                if html_files:
+                    report_path = html_files[0]
+            if not report_path:
+                continue
+            try:
+                rel = report_path.relative_to(entry)
+            except Exception:
+                continue
+            stat = report_path.stat()
+            items.append(
+                {
+                    "token": token,
+                    "path": str(rel),
+                    "url": url_for("view_report", token=token, path=str(rel)),
+                    "modified": datetime.utcfromtimestamp(stat.st_mtime).isoformat() + "Z",
+                    "size": stat.st_size,
+                }
+            )
+        items.sort(key=lambda x: x["modified"], reverse=True)
+        return items
+
+    @app.get("/api/reports")
+    def list_reports():
+        """List saved reports for browsing."""
+        return jsonify({"items": _collect_reports()})
+
+    @app.delete("/api/reports/<token>")
+    def delete_report(token: str):
+        """Delete a saved report by token."""
+        output_root = Path(app.config["OUTPUT_FOLDER"]).resolve()
+        base = (output_root / secure_filename(token)).resolve()
+        try:
+            base.relative_to(output_root)
+        except Exception:
+            abort(404)
+        if base.exists():
+            try:
+                shutil.rmtree(base, ignore_errors=True)
+            except Exception:
+                abort(500)
+        return jsonify({"status": "ok"})
+
     @app.get("/reports/<token>/<path:filename>")
     def serve_report_file(token: str, filename: str):
         """Serve report files"""
@@ -236,15 +300,15 @@ def create_app() -> Flask:
         html = html.replace("href=\"styles/", "href=\"/report-assets/styles/")
         html = html.replace("src=\"scripts/", "src=\"/report-assets/scripts/")
         html = html.replace("src=\"images/", "src=\"/report-assets/images/")
+        html = html.replace("href=\"images/", "href=\"/report-assets/images/")
 
-        # Cleanup uploads and outputs after response
+        # Cleanup uploads after response (keep outputs persistent)
         uploads_token_dir = Path(app.config["UPLOAD_FOLDER"]) / secure_filename(token)
 
         @after_this_request
         def _cleanup(response):
             try:
                 _remove_dir(uploads_token_dir)
-                _remove_dir(base)
             except Exception:
                 pass
             return response

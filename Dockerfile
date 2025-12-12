@@ -39,6 +39,9 @@ COPY webapp/ ./webapp/
 # Create necessary directories
 RUN mkdir -p webapp/uploads webapp/outputs
 
+# Declare persistent mount points for uploads/outputs
+VOLUME ["/app/webapp/uploads", "/app/webapp/outputs"]
+
 # Set environment variables
 ENV FLASK_APP=webapp/app.py
 ENV PYTHONUNBUFFERED=1

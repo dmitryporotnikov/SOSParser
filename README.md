@@ -19,6 +19,24 @@ docker run -d -p 8000:8000 --name sosparser samuelmatildes/sosparser:latest
 
 Then open http://localhost:8000 in your browser.
 
+#### Persisting uploads and reports
+- Bind mounts (recommended):
+  ```bash
+  docker run -d -p 8000:8000 --name sosparser \
+    -v $(pwd)/data/uploads:/app/webapp/uploads \
+    -v $(pwd)/data/outputs:/app/webapp/outputs \
+    samuelmatildes/sosparser:latest
+  ```
+  Reports live in `/app/webapp/outputs/<token>/report.html` and stay on disk.
+- Named volumes:
+  ```bash
+  docker run -d -p 8000:8000 --name sosparser \
+    -v sosparser_uploads:/app/webapp/uploads \
+    -v sosparser_outputs:/app/webapp/outputs \
+    samuelmatildes/sosparser:latest
+  ```
+- If you do **not** specify mounts, Docker will create anonymous volumes (due to `VOLUME` in the image); data persists for that container, but new containers won’t reuse it unless you reattach the volume ID.
+
 
 
 ## Usage
