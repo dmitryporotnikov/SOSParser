@@ -149,9 +149,8 @@ def create_app() -> Flask:
     def report_images(filename: str):
         return send_from_directory(str(report_images_dir), filename, as_attachment=False)
 
-    # Cleanup uploads/ and outputs/ on startup
+    # Cleanup uploads/ on startup (keep outputs for persistence)
     _cleanup_dir_contents(uploads_dir)
-    _cleanup_dir_contents(outputs_dir)
 
     @app.get("/")
     def index():
@@ -237,14 +236,13 @@ def create_app() -> Flask:
         html = html.replace("src=\"scripts/", "src=\"/report-assets/scripts/")
         html = html.replace("src=\"images/", "src=\"/report-assets/images/")
 
-        # Cleanup uploads and outputs after response
+        # Cleanup uploads after response (keep outputs persistent)
         uploads_token_dir = Path(app.config["UPLOAD_FOLDER"]) / secure_filename(token)
 
         @after_this_request
         def _cleanup(response):
             try:
                 _remove_dir(uploads_token_dir)
-                _remove_dir(base)
             except Exception:
                 pass
             return response
