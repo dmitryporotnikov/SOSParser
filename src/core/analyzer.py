@@ -32,6 +32,7 @@ from analyzers.supportconfig.system_info import SupportconfigSystemInfo
 from analyzers.supportconfig.system_config import SupportconfigSystemConfig
 from analyzers.supportconfig.network import SupportconfigNetwork
 from analyzers.supportconfig.filesystem import SupportconfigFilesystem
+from analyzers.supportconfig.cloud import SupportconfigCloud
 
 from reporting.report_generator import (
     prepare_report_data,
@@ -132,6 +133,7 @@ class SOSReportAnalyzer:
         config_analyzer = SupportconfigSystemConfig(extracted_dir)
         net_analyzer = SupportconfigNetwork(extracted_dir)
         fs_analyzer = SupportconfigFilesystem(extracted_dir)
+        cloud_analyzer = SupportconfigCloud(extracted_dir)
         from analyzers.supportconfig.parser import SupportconfigParser
         log_parser = SupportconfigParser(extracted_dir)
         
@@ -205,44 +207,9 @@ class SOSReportAnalyzer:
             'auth': auth_logs,
             'services': {},
         }
-        
-        # Cloud detection from supportconfig public_cloud directory
-        cloud = None
-        public_cloud_dir = extracted_dir / 'public_cloud'
-        if public_cloud_dir.exists():
-            cloud = {}
 
-            def read_optional(path: Path, limit: int | None = None):
-                try:
-                    text = path.read_text(encoding='utf-8', errors='ignore')
-                    return text[:limit] if limit else text
-                except Exception:
-                    return None
-
-            metadata = read_optional(public_cloud_dir / 'metadata.txt', 5000)
-            instanceinit = read_optional(public_cloud_dir / 'instanceinit.txt', 5000)
-            hosts_pc = read_optional(public_cloud_dir / 'hosts.txt', 4000)
-            cloudregister = read_optional(public_cloud_dir / 'cloudregister.txt', 4000)
-            credentials = read_optional(public_cloud_dir / 'credentials.txt', 2000)
-            osrelease_pc = read_optional(public_cloud_dir / 'osrelease.txt', 1000)
-
-            provider = None
-            for blob in (metadata, instanceinit, cloudregister, hosts_pc):
-                if blob and 'azure' in blob.lower():
-                    provider = 'azure'
-                    break
-            cloud['provider'] = provider or 'unknown'
-            cloud['virtualization'] = {}
-            cloud['cloud_init'] = {}
-            if instanceinit:
-                cloud['cloud_init']['cloud_status'] = instanceinit
-            cloud['azure'] = {
-                'metadata': metadata,
-                'hosts': hosts_pc,
-                'cloudregister': cloudregister,
-                'credentials': credentials,
-                'osrelease': osrelease_pc,
-            }
+        # Analyze cloud information
+        cloud = cloud_analyzer.analyze()
         
         return (hostname, os_info, kernel_info, uptime, cpu_info, memory_info, 
                 disk_info, system_load, dmi_info, system_config, filesystem, network, logs, cloud)
