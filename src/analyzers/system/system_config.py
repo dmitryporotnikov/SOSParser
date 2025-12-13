@@ -100,6 +100,57 @@ class SystemConfigAnalyzer:
             data['login_defs'] = login_defs.read_text()
         
         return data
+
+    def analyze_ssh_runtime(self, base_path: Path) -> dict:
+        """Analyze sshd -T output to capture runtime SSH configuration"""
+        Logger.debug("Analyzing SSH runtime configuration from sshd -T")
+
+        sshd_t = base_path / 'sos_commands' / 'ssh' / 'sshd_-T'
+        if not sshd_t.exists():
+            return {}
+
+        try:
+            content = sshd_t.read_text()
+        except Exception as e:
+            Logger.warning(f"Failed to read sshd_-T output: {e}")
+            return {}
+
+        grouped = {}
+        order = []
+        entries = []
+
+        for line in content.splitlines():
+            stripped = line.strip()
+            if not stripped:
+                continue
+
+            if ' ' in stripped or '\t' in stripped:
+                key, value = stripped.split(None, 1)
+                value = value.strip()
+            else:
+                key, value = stripped, ''
+
+            entries.append({'option': key, 'value': value})
+
+            if key not in grouped:
+                grouped[key] = []
+                order.append(key)
+            grouped[key].append(value)
+
+        settings = [{'option': key, 'value_list': grouped.get(key, [])} for key in order]
+
+        runtime_data = {
+            'raw': content.strip(),
+            'settings': settings,
+            'entries': entries,
+        }
+
+        try:
+            runtime_data['source'] = str(sshd_t.relative_to(base_path))
+        except Exception:
+            runtime_data['source'] = str(sshd_t)
+
+        return runtime_data
     
     def analyze_services(self, base_path: Path) -> dict:
         """Analyze systemd services"""
