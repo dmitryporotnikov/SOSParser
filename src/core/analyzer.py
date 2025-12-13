@@ -152,8 +152,8 @@ class SOSReportAnalyzer:
         system_config = {
             'general': config_data.get('general', {}),
             'boot': config_data.get('boot', {}),
-            'authentication': config_data.get('ssh', {}),  # SSH config goes to authentication
-            'ssh_runtime': self.system_config_analyzer.analyze_ssh_runtime(extracted_dir),
+            'authentication': config_data.get('authentication', {}),
+            'ssh_runtime': config_data.get('ssh_runtime', {}),
             'services': config_data.get('services', {}),
             'cron': config_data.get('cron', {}),
             'security': config_data.get('security', {}),
