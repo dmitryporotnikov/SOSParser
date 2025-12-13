@@ -242,6 +242,7 @@
                     <button class="subtab-button active" data-subtab="general">General</button>
                     <button class="subtab-button" data-subtab="boot">Boot & GRUB</button>
                     <button class="subtab-button" data-subtab="authentication">Authentication</button>
+                    <button class="subtab-button" data-subtab="ssh-runtime">SSH</button>
                     <button class="subtab-button" data-subtab="services">Services</button>
                     <button class="subtab-button" data-subtab="cron">Cron</button>
                     <button class="subtab-button" data-subtab="security">Security</button>
@@ -407,6 +408,48 @@
 
                     {% else %}
                     <p>No authentication configuration data available</p>
+                    {% endif %}
+                </div>
+
+                <div id="ssh-runtime" class="subtab-content">
+                    <h3>SSH Runtime Configuration</h3>
+                    {% if system_config.ssh_runtime %}
+                        {% set ssh = system_config.ssh_runtime %}
+                        {% if ssh.source %}
+                        <p><strong>Source:</strong> {{ ssh.source }}</p>
+                        {% endif %}
+
+                        {% if ssh.settings %}
+                        <table class="info-table">
+                            <tr>
+                                <th class="label">Directive</th>
+                                <th class="label">Value(s)</th>
+                            </tr>
+                            {% for directive in ssh.settings %}
+                            <tr>
+                                <td class="label">{{ directive.option }}</td>
+                                <td class="value">
+                                    {% set values = directive.value_list %}
+                                    {% if values %}
+                                        {% for value in values %}
+                                            {{ value if value else '(empty)' }}
+                                            {% if not loop.last %}<br>{% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        (not set)
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </table>
+                        {% endif %}
+
+                        {% if ssh.raw %}
+                        <h4>Raw Output (sshd -T)</h4>
+                        <pre>{{ ssh.raw }}</pre>
+                        {% endif %}
+                    {% else %}
+                    <p>No SSH runtime configuration data available</p>
                     {% endif %}
                 </div>
 

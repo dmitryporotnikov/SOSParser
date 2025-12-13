@@ -26,7 +26,8 @@ class SupportconfigSystemConfig:
         return {
             'general': self.get_general_config(),
             'boot': self.get_boot_config(),
-            'ssh': self.get_ssh_config(),
+            'authentication': self.get_authentication_config(),
+            'ssh_runtime': self.get_ssh_runtime_config(),
             'services': self.get_services_config(),
             'cron': self.get_cron_config(),
             'security': self.get_security_config(),
@@ -172,12 +173,12 @@ class SupportconfigSystemConfig:
 
         return boot_info
     
-    def get_ssh_config(self) -> Dict[str, Any]:
+    def get_authentication_config(self) -> Dict[str, Any]:
         """
         Extract SSH and authentication configuration from ssh.txt.
-        
+
         Returns:
-            Dictionary with verification, service_status, configs, ports, PAM
+            Dictionary with verification, service_status, configs, ports, PAM for authentication tab
         """
         ssh_info: Dict[str, Any] = {
             'verification_status': '',
@@ -266,6 +267,62 @@ class SupportconfigSystemConfig:
                             ssh_info['pam_config'].append(line)
         
         return ssh_info
+
+    def get_ssh_runtime_config(self) -> Dict[str, Any]:
+        """
+        Extract SSH runtime configuration from ssh.txt.
+        Since supportconfig doesn't capture 'sshd -T' output, we parse sshd_config
+        and create a similar structure.
+
+        Returns:
+            Dictionary shaped like the report template expects for ssh_runtime:
+              - source: path to the config file
+              - settings: list of dicts with 'option' and 'value_list'
+              - raw: the raw configuration content
+        """
+        ssh_runtime: Dict[str, Any] = {
+            'source': '',
+            'settings': [],
+            'raw': '',
+        }
+
+        content = self.parser.read_file('ssh.txt')
+        if not content:
+            return ssh_runtime
+
+        sections = self.parser.extract_sections(content)
+        grouped = {}
+        order = []
+
+        for section in sections:
+            if section['type'] == 'Configuration':
+                lines = section['content'].split('\n')
+                if not lines:
+                    continue
+
+                file_path = lines[0].strip('# ').strip()
+                if '/etc/ssh/sshd_config' in file_path and 'not found' not in file_path.lower():
+                    ssh_runtime['source'] = file_path
+                    ssh_runtime['raw'] = '\n'.join(lines[1:]).strip()
+
+                    # Parse configuration into settings format similar to sshd -T output
+                    for line in lines[1:]:
+                        line = line.strip()
+                        if line and not line.startswith('#') and not line.startswith('Include'):
+                            parts = line.split(None, 1)
+                            if len(parts) >= 1:
+                                key = parts[0]
+                                value = parts[1] if len(parts) > 1 else ''
+
+                                if key not in grouped:
+                                    grouped[key] = []
+                                    order.append(key)
+                                grouped[key].append(value)
+
+                    # Create settings list in order
+                    ssh_runtime['settings'] = [{'option': key, 'value_list': grouped.get(key, [])} for key in order]
+
+        return ssh_runtime
 
     def get_services_config(self) -> Dict[str, Any]:
         """

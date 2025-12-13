@@ -13,6 +13,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.2.3] - 2025-12-13
+
+### Added
+- SSH configuration analysis: Parse `sos_commands/ssh/sshd_-T` (effective SSH configuration) and load this data in both SOS and supportconfig flows (`system_config.ssh_runtime`) for template access
+- System Configuration UI enhancement: New dedicated "SSH" subtab that renders a directive table plus raw `sshd -T` text
+- Docker build script improvement: Added `-run` flag to `./docker-build.sh` that stops and removes existing sosparser container on dev/test systems and runs a new one for simplified testing
+
+---
+
 ## [0.2.2] - 2025-12-12
 
 ### Added
@@ -208,7 +217,9 @@ Future releases will include:
 
 ---
 
-[Unreleased]: https://github.com/samatild/SOSParser/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/samatild/SOSParser/compare/v0.2.3...HEAD
+[0.2.3]: https://github.com/samatild/SOSParser/compare/v0.2.2...v0.2.3
+[0.2.2]: https://github.com/samatild/SOSParser/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/samatild/SOSParser/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/samatild/SOSParser/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/samatild/SOSParser/releases/tag/v0.1.0
