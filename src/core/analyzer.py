@@ -18,7 +18,9 @@ from analyzers.system.system_info import (
     get_memory_info,
     get_disk_info,
     get_system_load,
-    get_dmidecode_info
+    get_dmidecode_info,
+    get_system_resources,
+    get_top_processes
 )
 from analyzers.system.system_config import SystemConfigAnalyzer
 from analyzers.filesystem.filesystem import FilesystemAnalyzer
@@ -246,6 +248,10 @@ class SOSReportAnalyzer:
                 disk_info = get_disk_info(extracted_dir)
                 system_load = get_system_load(extracted_dir)
                 dmi_info = get_dmidecode_info(extracted_dir)
+
+                # Get enhanced summary data for SOSReport
+                system_resources = get_system_resources(extracted_dir)
+                top_processes = get_top_processes(extracted_dir)
                 
                 # Analyze system configuration
                 Logger.debug("Analyzing system configuration.")
@@ -347,7 +353,7 @@ class SOSReportAnalyzer:
             # Prepare report data
             Logger.debug("Preparing report data for template.")
 
-            # For supportconfig, pass enhanced summary data
+            # Enhanced summary data for both supportconfig and sosreport
             enhanced_summary = None
             if format_type == 'supportconfig':
                 enhanced_summary = {
@@ -356,6 +362,11 @@ class SOSReportAnalyzer:
                     'supportconfig_info': summary.get('supportconfig_info', {}),
                     'top_processes': summary.get('top_processes', {'cpu': [], 'memory': []}),
                     'system_resources': summary.get('system_resources', {}),
+                }
+            elif format_type == 'sosreport':
+                enhanced_summary = {
+                    'top_processes': top_processes,
+                    'system_resources': system_resources,
                 }
 
             report_data = prepare_report_data(
