@@ -22,7 +22,7 @@ jobs:
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          VERSION=${{ steps.version.outputs.tag }}
+          VERSION="v${{ steps.version.outputs.tag }}"
           if git rev-parse "refs/tags/$VERSION" >/dev/null 2>&1; then
             echo "Tag $VERSION already exists. Skipping tagging."
           else
