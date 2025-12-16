@@ -10,6 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    outputs:
+      tag_created: ${{ steps.create_tag.outputs.tag_created }}
+      tag_version: ${{ steps.create_tag.outputs.tag_version }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -27,10 +30,13 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           VERSION="v${{ steps.version.outputs.tag }}"
+          echo "Checking for tag: $VERSION"
           if git rev-parse "refs/tags/$VERSION" >/dev/null 2>&1; then
             echo "Tag $VERSION already exists. Skipping tagging."
             echo "tag_created=false" >> $GITHUB_OUTPUT
+            echo "tag_version=$VERSION" >> $GITHUB_OUTPUT
           else
+            echo "Creating new tag: $VERSION"
             git tag -a "$VERSION" -m "Release $VERSION"
             git push origin "$VERSION"
             echo "tag_created=true" >> $GITHUB_OUTPUT
