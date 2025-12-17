@@ -5,6 +5,9 @@ A web application for automated analysis of Linux sosreport/supportconfig diagno
 [![Docker Hub](https://img.shields.io/docker/pulls/samuelmatildes/sosparser)](https://hub.docker.com/r/samuelmatildes/sosparser)
 [![Docker Image Size](https://img.shields.io/docker/image-size/samuelmatildes/sosparser/latest)](https://hub.docker.com/r/samuelmatildes/sosparser)
 
+Join our Telegram group for updates: 
+
+[![Telegram](https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/+DUy2LLY1-0M1NzI8)
 
 ## How to run
 
@@ -49,18 +52,24 @@ Then open http://localhost:8000 in your browser.
 4. View the generated interactive analysis report.
 
 
-## Supported Formats
+## Processing Capabilities
 
-### SOSReport (Red Hat/CentOS/Ubuntu/Fedora)
-- `.tar.xz` (recommended)
-- `.tar.gz`
-- `.tar.bz2`
-- `.tgz`
-- `.tar`
+SOSParser analyzes comprehensive system information from diagnostic reports. For a detailed breakdown of what is currently processed and what features are planned, see [`checklist.md`](checklist.md).
 
-### Supportconfig (SUSE SLES/openSUSE)
-- `.txz` (tar.xz format)
-- `.tar.xz`
+### Currently Processed
+- **System Information**: Hardware, OS, kernel, CPU, memory, disk details
+- **System Configuration**: Boot, authentication, services, security, packages
+- **Filesystem Analysis**: Mounts, LVM, disk usage, filesystem types
+- **Network Analysis**: Interfaces, routing, DNS, firewall, connectivity
+- **Log Analysis**: System logs, kernel logs, authentication logs, service logs
+- **Cloud Services**: AWS, Azure, GCP, Oracle Cloud detection and analysis
+
+### Planned Features
+- Advanced disk diagnostics (SMART, ATA)
+- Application server configurations (Apache, Nginx, databases)
+- Container orchestration (Kubernetes, Docker Swarm)
+- Backup and monitoring solutions
+- And many more (see [checklist.md](checklist.md) for complete details)
 
 
 ### Build Docker Image Locally
@@ -135,7 +144,8 @@ If you encounter bugs, have questions, or want to suggest an enhancement:
    - Environment details (OS, browser, Docker tag, etc.)
    - Screenshots or logs if helpful
 
-3. **Feature Requests**  
+3. **Feature Requests**
    Clearly describe the use case and the benefit for others.
+
 
 Thank you for helping improve `sosparser`!
