@@ -1,6 +1,7 @@
 # Release Notes
 
-## [0.2.5] - 2025-12-16
+[0.2.6] - 2025-12-18
 
-### Added
-- **Debian Package Support**: Added Debian package parsing (`dpkg -l`) for SOSReport when RPM packages are not available, supporting both Red Hat/CentOS/SUSE (RPM) and Debian/Ubuntu (DPKG) based systems
+Added
+- NFS Analysis for Supportconfig: Added comprehensive NFS client and server analysis including package verification, service status, configuration parsing, statistics, mounts, and exports - displayed in dedicated NFS subtab under Filesystem tab
+- Samba/CIFS Analysis for Supportconfig: Added Samba package analysis, verification status, configuration parsing, and service monitoring - displayed in dedicated Samba subtab under Filesystem tab
