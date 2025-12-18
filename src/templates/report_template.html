@@ -1079,6 +1079,10 @@
                     <button class="subtab-button" data-subtab="lvm">LVM</button>
                     <button class="subtab-button" data-subtab="disk-usage">Disk Usage</button>
                     <button class="subtab-button" data-subtab="filesystems">Filesystems</button>
+                    {% if format_type == 'supportconfig' %}
+                    <button class="subtab-button" data-subtab="nfs">NFS</button>
+                    <button class="subtab-button" data-subtab="samba">Samba</button>
+                    {% endif %}
                 </nav>
 
                 <div id="mounts" class="subtab-content active">
@@ -1148,6 +1152,120 @@
                     <p>No filesystem data available</p>
                     {% endif %}
                 </div>
+
+                {% if format_type == 'supportconfig' %}
+                <div id="nfs" class="subtab-content">
+                    <h3>NFS Configuration</h3>
+                    {% if filesystem.nfs %}
+                        {% if filesystem.nfs.client_packages %}
+                        <h4>Client Packages</h4>
+                        {% for pkg_name, pkg_data in filesystem.nfs.client_packages.items() %}
+                        <h5>{{ pkg_name|title }} Package</h5>
+                        <p><strong>{{ pkg_data.header }}</strong></p>
+                        <pre>{{ pkg_data.content }}</pre>
+                        {% endfor %}
+                        {% endif %}
+
+                        {% if filesystem.nfs.server_packages %}
+                        <h4>Server Packages</h4>
+                        {% for pkg_name, pkg_data in filesystem.nfs.server_packages.items() %}
+                        <h5>{{ pkg_name|title }} Package</h5>
+                        <p><strong>{{ pkg_data.header }}</strong></p>
+                        <pre>{{ pkg_data.content }}</pre>
+                        {% endfor %}
+                        {% endif %}
+
+                        {% if filesystem.nfs.services %}
+                        <h4>Services Status</h4>
+                        {% for svc_name, svc_status in filesystem.nfs.services.items() %}
+                        <h5>{{ svc_name|replace('_', ' ')|title }}</h5>
+                        <pre>{{ svc_status }}</pre>
+                        {% endfor %}
+                        {% endif %}
+
+                        {% if filesystem.nfs.config %}
+                        <h4>NFS Configuration</h4>
+                        {% if filesystem.nfs.config.sysconfig %}
+                        <h5>/etc/sysconfig/nfs</h5>
+                        <pre>{{ filesystem.nfs.config.sysconfig }}</pre>
+                        {% endif %}
+                        {% endif %}
+
+                        {% if filesystem.nfs.stats %}
+                        <h4>NFS Statistics</h4>
+                        {% if filesystem.nfs.stats.nfsstat %}
+                        <h5>nfsstat Output</h5>
+                        <pre>{{ filesystem.nfs.stats.nfsstat }}</pre>
+                        {% endif %}
+                        {% if filesystem.nfs.stats.rpcinfo %}
+                        <h5>rpcinfo Output</h5>
+                        <pre>{{ filesystem.nfs.stats.rpcinfo }}</pre>
+                        {% endif %}
+                        {% endif %}
+
+                        {% if filesystem.nfs.mounts %}
+                        <h4>NFS Mounts</h4>
+                        {% for mount in filesystem.nfs.mounts %}
+                        <pre>{{ mount }}</pre>
+                        {% endfor %}
+                        {% endif %}
+
+                        {% if filesystem.nfs.exports %}
+                        <h4>NFS Exports</h4>
+                        {% if filesystem.nfs.exports.exportfs %}
+                        <h5>exportfs Output</h5>
+                        <pre>{{ filesystem.nfs.exports.exportfs }}</pre>
+                        {% endif %}
+                        {% if filesystem.nfs.exports.exports_file %}
+                        <h5>/etc/exports</h5>
+                        <pre>{{ filesystem.nfs.exports.exports_file }}</pre>
+                        {% endif %}
+                        {% endif %}
+                    {% else %}
+                    <p>No NFS data available</p>
+                    {% endif %}
+                </div>
+
+                <div id="samba" class="subtab-content">
+                    <h3>Samba/CIFS Configuration</h3>
+                    {% if filesystem.samba %}
+                        {% if filesystem.samba.packages %}
+                        <h4>Installed Samba Packages</h4>
+                        <pre>{% for package in filesystem.samba.packages %}{{ package }}
+{% endfor %}</pre>
+                        {% endif %}
+
+                        {% if filesystem.samba.verification %}
+                        <h4>Package Verification Status</h4>
+                        {% for pkg_name, pkg_data in filesystem.samba.verification.items() %}
+                        <h5>{{ pkg_name }}</h5>
+                        <p><strong>{{ pkg_data.header }}</strong></p>
+                        {% if pkg_data.content %}
+                        <pre>{{ pkg_data.content }}</pre>
+                        {% endif %}
+                        {% endfor %}
+                        {% endif %}
+
+                        {% if filesystem.samba.config %}
+                        <h4>Samba Configuration Files</h4>
+                        {% for config_file, content in filesystem.samba.config.items() %}
+                        <h5>{{ config_file }}</h5>
+                        <pre>{{ content }}</pre>
+                        {% endfor %}
+                        {% endif %}
+
+                        {% if filesystem.samba.services %}
+                        <h4>Samba Services Status</h4>
+                        {% for svc_name, svc_status in filesystem.samba.services.items() %}
+                        <h5>{{ svc_name|upper }}</h5>
+                        <pre>{{ svc_status }}</pre>
+                        {% endfor %}
+                        {% endif %}
+                    {% else %}
+                    <p>No Samba data available</p>
+                    {% endif %}
+                </div>
+                {% endif %}
             </section>
 
             <!-- Network Tab -->
