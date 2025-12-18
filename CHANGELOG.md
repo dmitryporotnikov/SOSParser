@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Planned
 - Performance optimizations for large reports
+- Additional filesystem analyzers (Btrfs, XFS, ZFS)
+- Advanced security analysis modules
+- Custom scenario configuration via JSON
+
+---
+
+## [0.2.6] - 2025-12-18
+
+### Added
+- **NFS Analysis for Supportconfig**: Added comprehensive NFS client and server analysis including package verification, service status, configuration parsing, statistics, mounts, and exports - displayed in dedicated NFS subtab under Filesystem tab
+- **Samba/CIFS Analysis for Supportconfig**: Added Samba package analysis, verification status, configuration parsing, and service monitoring - displayed in dedicated Samba subtab under Filesystem tab
 
 ---
 
@@ -235,12 +246,12 @@ Future releases will include:
 
 ---
 
-[Unreleased]: https://github.com/samatild/SOSParser/compare/v0.2.5...HEAD
-[0.2.5]: https://github.com/samatild/SOSParser/releases/tag/v0.2.5
+[Unreleased]: https://github.com/samatild/SOSParser/compare/v0.2.6...HEAD
+[0.2.6]: https://github.com/samatild/SOSParser/releases/tag/v0.2.6
+[0.2.5]: https://github.com/samatild/SOSParser/compare/v0.2.5...v0.2.6
 [0.2.4]: https://github.com/samatild/SOSParser/compare/v0.2.4...v0.2.5
-[0.2.4]: https://github.com/samatild/SOSParser/compare/v0.2.3...v0.2.4
-[0.2.3]: https://github.com/samatild/SOSParser/compare/v0.2.2...v0.2.3
-[0.2.2]: https://github.com/samatild/SOSParser/compare/v0.2.1...v0.2.2
-[0.2.1]: https://github.com/samatild/SOSParser/compare/v0.2.0...v0.2.1
-[0.2.0]: https://github.com/samatild/SOSParser/compare/v0.1.0...v0.2.0
-[0.1.0]: https://github.com/samatild/SOSParser/releases/tag/v0.1.0
+[0.2.3]: https://github.com/samatild/SOSParser/compare/v0.2.3...v0.2.4
+[0.2.2]: https://github.com/samatild/SOSParser/compare/v0.2.2...v0.2.3
+[0.2.1]: https://github.com/samatild/SOSParser/compare/v0.2.1...v0.2.2
+[0.2.0]: https://github.com/samatild/SOSParser/compare/v0.2.0...v0.2.1
+[0.1.0]: https://github.com/samatild/SOSParser/compare/v0.1.0...v0.2.0
